@@ -16,7 +16,7 @@ namespace GitVersionTree
     {
         private Dictionary<string, string> DecorateDictionary = new Dictionary<string, string>();
         private List<List<string>> Nodes = new List<List<string>>();
-        
+
         private string DotFilename = Directory.GetParent(Application.ExecutablePath) + @"\" + Application.ProductName + ".dot";
         private string PdfFilename = Directory.GetParent(Application.ExecutablePath) + @"\" + Application.ProductName + ".pdf";
         private string LogFilename = Directory.GetParent(Application.ExecutablePath) + @"\" + Application.ProductName + ".log";
@@ -88,17 +88,19 @@ namespace GitVersionTree
         {
             if (String.IsNullOrEmpty(Reg.Read("GitPath")) ||
                 String.IsNullOrEmpty(Reg.Read("GraphvizPath")) ||
-                String.IsNullOrEmpty(Reg.Read("GitRepositoryPath")))
+                String.IsNullOrEmpty(Reg.Read("GitRepositoryPath")) ||
+                String.IsNullOrEmpty(Reg.Read("OutputPath")))
             {
-                MessageBox.Show("Please select a Git, Graphviz & Git repository.", "Generate", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("Please select a Git, Graphviz, Git repository and output path.", "Generate", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {
                 StatusRichTextBox.Text = "";
+                var outputPath = Reg.Read("OutputPath");
                 RepositoryName = new DirectoryInfo(GitRepositoryPathTextBox.Text).Name;
-                DotFilename = Directory.GetParent(Application.ExecutablePath) + @"\" + RepositoryName + ".dot";
-                PdfFilename = Directory.GetParent(Application.ExecutablePath) + @"\" + RepositoryName + ".pdf";
-                LogFilename = Directory.GetParent(Application.ExecutablePath) + @"\" + RepositoryName + ".log";
+                DotFilename = outputPath + @"\" + RepositoryName + ".dot";
+                PdfFilename = outputPath + @"\" + RepositoryName + ".pdf";
+                LogFilename = outputPath + @"\" + RepositoryName + ".log";
                 File.WriteAllText(LogFilename, "");
                 Generate();
             }
@@ -108,7 +110,7 @@ namespace GitVersionTree
         {
             Process.Start("https://github.com/crc8/GitVersionTree");
         }
-        
+
         private void ExitButton_Click(object sender, EventArgs e)
         {
             Close();
@@ -127,6 +129,10 @@ namespace GitVersionTree
             if (!String.IsNullOrEmpty(Reg.Read("GitRepositoryPath")))
             {
                 GitRepositoryPathTextBox.Text = Reg.Read("GitRepositoryPath");
+            }
+            if (!String.IsNullOrEmpty(Reg.Read("OutputPath")))
+            {
+                OutputPath.Text = Reg.Read("OutputPath");
             }
         }
 
@@ -373,6 +379,22 @@ namespace GitVersionTree
             }
 
             Status("Done! ...");
+        }
+
+        private void OutputPathBrowse_Click(object sender, EventArgs e)
+        {
+            var BrowseFolderBrowserDialog = new FolderBrowserDialog();
+            BrowseFolderBrowserDialog.Description = "Select output path";
+            BrowseFolderBrowserDialog.ShowNewFolderButton = true;
+            if (!string.IsNullOrEmpty(Reg.Read("OutputPath")))
+            {
+                BrowseFolderBrowserDialog.SelectedPath = Reg.Read("OutputPath");
+            }
+            if (BrowseFolderBrowserDialog.ShowDialog() == DialogResult.OK)
+            {
+                Reg.Write("OutputPath", BrowseFolderBrowserDialog.SelectedPath);
+                RefreshPath();
+            }
         }
     }
 }
